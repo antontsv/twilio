@@ -37,6 +37,7 @@ func sendTwiML(w http.ResponseWriter, twiML string) {
 	}
 
 	w.Header().Add("Content-Type", "text/xml; charset=utf-8")
+	w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>`))
 
 	err = tmpl.Execute(w, envVars)
 	if err != nil {
@@ -46,9 +47,9 @@ func sendTwiML(w http.ResponseWriter, twiML string) {
 
 // StraightToVoiceMail uses twimlet to record a message and send it over by email
 func StraightToVoiceMail(w http.ResponseWriter, req *http.Request) {
-	xml := `<?xml version="1.0" encoding="UTF-8"?>
+	xml := `
 <Response>
-	<Redirect method="GET">http://twimlets.com/voicemail?Email={{ .VOICEMAIL_EMAIL }}&amp;Message=Please+Leave+A+Message</Redirect>
+    <Redirect method="GET">http://twimlets.com/voicemail?Email={{ .VOICEMAIL_EMAIL }}&amp;Message=Please+Leave+A+Message</Redirect>
 </Response>
 `
 	sendTwiML(w, xml)
@@ -56,14 +57,14 @@ func StraightToVoiceMail(w http.ResponseWriter, req *http.Request) {
 
 // HandleIncomingCall serves XML to kick off incoming call
 func HandleIncomingCall(w http.ResponseWriter, req *http.Request) {
-	responseFormat := `<?xml version="1.0" encoding="UTF-8"?>
+	responseFormat := `
 <Response>
     <Say voice="alice" language="en-US">Please leave a message</Say>
-	<Sms from="{{ .TWILIO_NUMBER }}" to="{{ .TARGET_NUMBER }}">Call from %s, %s, %s.</Sms>
-	<Record maxLength="300" action="/process-recording"></Record>
-	<Say voice="alice" language="en-US">I may not give you a call back. Please leave a message.</Say>
-	<Record maxLength="300" action="/process-recording"></Record>
-	<Say voice="alice" language="en-US">Ok, as you wish, good bye</Say>
+    <Sms from="{{ .TWILIO_NUMBER }}" to="{{ .TARGET_NUMBER }}">Call from %s, %s, %s.</Sms>
+    <Record maxLength="300" action="/process-recording"></Record>
+    <Say voice="alice" language="en-US">I may not give you a call back. Please leave a message.</Say>
+    <Record maxLength="300" action="/process-recording"></Record>
+    <Say voice="alice" language="en-US">Ok, as you wish, good bye</Say>
 </Response>
 `
 	city := getRequestParam(req, "FromCity", "Unknown city")
@@ -76,12 +77,12 @@ func HandleIncomingCall(w http.ResponseWriter, req *http.Request) {
 
 // HandleRecordCallback handles Twilio callback with a recorded message
 func HandleRecordCallback(w http.ResponseWriter, req *http.Request) {
-	responseFormat := `<?xml version="1.0" encoding="UTF-8"?>
+	responseFormat := `
 <Response>
 	<Say voice="alice" language="en-US">Thank you, you should hear back soon</Say>
 	<Sms from="{{ .TWILIO_NUMBER }}" to="{{ .TARGET_NUMBER }}">You have got a twilio call from %s, %s, %s</Sms>
 </Response>
-`
+	`
 	if err := req.ParseForm(); err != nil {
 		log.Printf("Failed to parse form %v\n", err)
 	}
