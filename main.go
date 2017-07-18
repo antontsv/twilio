@@ -46,7 +46,7 @@ func sendTwiML(w http.ResponseWriter, twiML string) {
 }
 
 // StraightToVoiceMail uses twimlet to record a message and send it over by email
-func StraightToVoiceMail(w http.ResponseWriter, req *http.Request) {
+func StraightToVoiceMail(w http.ResponseWriter, _ *http.Request) {
 	xml := `
 <Response>
     <Redirect method="GET">http://twimlets.com/voicemail?Email={{ .VOICEMAIL_EMAIL }}&amp;Message=Please+Leave+A+Message</Redirect>
