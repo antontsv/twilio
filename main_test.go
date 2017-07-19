@@ -21,10 +21,16 @@ func TestStraingToVoiceMailResponse(t *testing.T) {
 }
 
 func checkWellFormetXML(s string) error {
-	if !strings.HasPrefix(s, "<?xml ") {
+	d := xml.NewDecoder(strings.NewReader(s))
+	t, err := d.Token()
+	if err != nil {
+		return err
+	}
+
+	v, ok := t.(xml.ProcInst)
+	if !ok || v.Target != "xml" {
 		return fmt.Errorf("No XML header detected at the start")
 	}
-	d := xml.NewDecoder(strings.NewReader(s))
-	_, err := d.Token()
-	return err
+
+	return nil
 }
