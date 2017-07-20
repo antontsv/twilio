@@ -15,12 +15,12 @@ func TestStraingToVoiceMailResponse(t *testing.T) {
 	if status := recorder.Code; status != http.StatusOK {
 		t.Errorf("returned wrong status code: got %v expected %v", status, http.StatusOK)
 	}
-	if err := checkWellFormetXML(recorder.Body.String()); err != nil {
+	if err := checkWellFormedXML(recorder.Body.String()); err != nil {
 		t.Errorf("body need to be valid XML: %v", err)
 	}
 }
 
-func checkWellFormetXML(s string) error {
+func checkWellFormedXML(s string) error {
 	d := xml.NewDecoder(strings.NewReader(s))
 	t, err := d.Token()
 	if err != nil {
