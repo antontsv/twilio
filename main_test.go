@@ -28,8 +28,8 @@ func checkWellFormetXML(s string) error {
 	}
 
 	v, ok := t.(xml.ProcInst)
-	if !ok || v.Target != "xml" {
-		return fmt.Errorf("No XML header detected at the start")
+	if !ok || v.Target != "xml" || !strings.Contains(string(v.Inst), "version=\"1.0\"") {
+		return fmt.Errorf("No XML header detected with version 1.0 at the start")
 	}
 
 	return nil
