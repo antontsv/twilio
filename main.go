@@ -96,7 +96,7 @@ func HandleRecordCallback(w http.ResponseWriter, req *http.Request) {
 }
 
 func getRequestParam(req *http.Request, paramName, defaultValue string) string {
-	value := paramGet(req)(paramName)
+	value := paramGet(req, paramName)
 	if value == "" && defaultValue != "" {
 		return defaultValue
 	}
@@ -104,14 +104,9 @@ func getRequestParam(req *http.Request, paramName, defaultValue string) string {
 	return value
 }
 
-func paramGet(req *http.Request) func(string) string {
+func paramGet(req *http.Request, key string) string {
 	if req.Method == "GET" {
-		return func(key string) string {
-			return req.URL.Query().Get(key)
-		}
+		return req.URL.Query().Get(key)
 	}
-	return func(key string) string {
-		return req.Form.Get(key)
-	}
-
+	return req.Form.Get(key)
 }
