@@ -35,18 +35,18 @@ func TestGetHandlerBasicResponse(t *testing.T) {
 		t.Run(tc.endpoint, func(t *testing.T) {
 			resp, err := http.Get(fmt.Sprintf("%s/%s", srv.URL, tc.endpoint))
 			if err != nil {
-				t.Fatalf(fmt.Sprintf("could not send request to %q", tc.endpoint))
+				t.Fatalf("could not send request to %q", tc.endpoint)
 			}
 			if status := resp.StatusCode; status != tc.statusCode {
-				t.Errorf("returned wrong status code: got %v expected %v", status, tc.statusCode)
+				t.Fatalf("returned wrong status code: got %v expected %v", status, tc.statusCode)
 			}
 			defer resp.Body.Close()
 			bytes, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
-				t.Errorf("could not read body of " + tc.endpoint)
+				t.Errorf("could not read body of %q", tc.endpoint)
 			}
-			if err = checkWellFormedXML(string(bytes)); err != nil {
-				t.Errorf("body need to be valid XML: %v", err)
+			if err := checkWellFormedXML(string(bytes)); err != nil {
+				t.Errorf("body needs to be valid XML: %v", err)
 			}
 		},
 		)
