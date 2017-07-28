@@ -32,6 +32,7 @@ func handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/incoming-call", StraightToVoiceMail)
 	mux.HandleFunc("/process-recording", HandleRecordCallback)
+	mux.HandleFunc("/incoming-call-experimental-flow", HandleIncomingCall)
 	return mux
 }
 
