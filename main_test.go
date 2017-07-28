@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -17,6 +18,38 @@ func TestStraingToVoiceMailResponse(t *testing.T) {
 	}
 	if err := checkWellFormedXML(recorder.Body.String()); err != nil {
 		t.Errorf("body need to be valid XML: %v", err)
+	}
+}
+
+func TestGetHandlerBasicResponse(t *testing.T) {
+	tt := []struct {
+		endpoint   string
+		statusCode int
+	}{
+		{endpoint: "incoming-call", statusCode: http.StatusOK},
+		{endpoint: "process-recording", statusCode: http.StatusOK},
+	}
+	srv := httptest.NewServer(handler())
+	defer srv.Close()
+	for _, tc := range tt {
+		t.Run(tc.endpoint, func(t *testing.T) {
+			resp, err := http.Get(fmt.Sprintf("%s/%s", srv.URL, tc.endpoint))
+			if err != nil {
+				t.Fatalf(fmt.Sprintf("could not send request to %q", tc.endpoint))
+			}
+			if status := resp.StatusCode; status != tc.statusCode {
+				t.Errorf("returned wrong status code: got %v expected %v", status, tc.statusCode)
+			}
+			defer resp.Body.Close()
+			bytes, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("could not read body of " + tc.endpoint)
+			}
+			if err = checkWellFormedXML(string(bytes)); err != nil {
+				t.Errorf("body need to be valid XML: %v", err)
+			}
+		},
+		)
 	}
 }
 

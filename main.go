@@ -24,10 +24,15 @@ func main() {
 			envVars[name] = val
 		}
 	}
-	http.HandleFunc("/incoming-call", StraightToVoiceMail)
-	http.HandleFunc("/process-recording", HandleRecordCallback)
 	log.Println(fmt.Sprintf("About to start listen on %s", addr))
-	log.Fatal(http.ListenAndServe(addr, nil))
+	log.Fatal(http.ListenAndServe(addr, handler()))
+}
+
+func handler() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/incoming-call", StraightToVoiceMail)
+	mux.HandleFunc("/process-recording", HandleRecordCallback)
+	return mux
 }
 
 func sendTwiML(w http.ResponseWriter, twiML string) {
