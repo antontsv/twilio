@@ -12,18 +12,25 @@ import (
 
 func TestGetHandlerBasicResponse(t *testing.T) {
 	tt := []struct {
+		method     string
 		endpoint   string
 		statusCode int
+		params     string
 	}{
-		{endpoint: "incoming-call", statusCode: http.StatusOK},
-		{endpoint: "process-recording", statusCode: http.StatusOK},
-		{endpoint: "incoming-call-experimental-flow", statusCode: http.StatusOK},
+		{method: http.MethodGet, endpoint: "incoming-call", statusCode: http.StatusOK},
+		{method: http.MethodGet, endpoint: "process-recording", statusCode: http.StatusOK},
+		{method: http.MethodGet, endpoint: "incoming-call-experimental-flow", statusCode: http.StatusOK},
+		{method: http.MethodPost, endpoint: "incoming-call-experimental-flow", statusCode: http.StatusOK},
 	}
 	srv := httptest.NewServer(handler())
 	defer srv.Close()
 	for _, tc := range tt {
 		t.Run(tc.endpoint, func(t *testing.T) {
-			resp, err := http.Get(fmt.Sprintf("%s/%s", srv.URL, tc.endpoint))
+			req, err := http.NewRequest(tc.method, fmt.Sprintf("%s/%s", srv.URL, tc.endpoint), nil)
+			if err != nil {
+				t.Fatalf("could prepare request to %q", tc.endpoint)
+			}
+			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				t.Fatalf("could not send request to %q", tc.endpoint)
 			}
