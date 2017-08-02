@@ -91,6 +91,8 @@ func HandleRecordCallback(w http.ResponseWriter, req *http.Request) {
 	`
 	if err := req.ParseForm(); err != nil {
 		log.Printf("Failed to parse form %v\n", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 	city := getRequestParam(req, "FromCity", "Unknown city")
 	fromNumber := getRequestParam(req, "From", "Unknown number")

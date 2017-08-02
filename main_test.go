@@ -12,20 +12,22 @@ import (
 
 func TestGetHandlerBasicResponse(t *testing.T) {
 	tt := []struct {
+		name       string
 		method     string
 		endpoint   string
 		statusCode int
 		params     string
 	}{
-		{method: http.MethodGet, endpoint: "incoming-call", statusCode: http.StatusOK},
-		{method: http.MethodGet, endpoint: "process-recording", statusCode: http.StatusOK},
-		{method: http.MethodGet, endpoint: "incoming-call-experimental-flow", statusCode: http.StatusOK},
-		{method: http.MethodPost, endpoint: "incoming-call-experimental-flow", statusCode: http.StatusOK},
+		{name: "Normal invocation of Incoming call", method: http.MethodGet, endpoint: "incoming-call", statusCode: http.StatusOK},
+		{name: "Normal invocation of Process recording call", method: http.MethodGet, endpoint: "process-recording", statusCode: http.StatusOK},
+		{name: "Bad form invocation of Process recording call", method: http.MethodPost, endpoint: "process-recording?v=%r0", statusCode: http.StatusBadRequest},
+		{name: "Get on experimental incomming call", method: http.MethodGet, endpoint: "incoming-call-experimental-flow", statusCode: http.StatusOK},
+		{name: "Post on experimental incomming call", method: http.MethodPost, endpoint: "incoming-call-experimental-flow", statusCode: http.StatusOK},
 	}
 	srv := httptest.NewServer(handler())
 	defer srv.Close()
 	for _, tc := range tt {
-		t.Run(tc.endpoint, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			req, err := http.NewRequest(tc.method, fmt.Sprintf("%s/%s", srv.URL, tc.endpoint), nil)
 			if err != nil {
 				t.Fatalf("could prepare request to %q", tc.endpoint)
@@ -38,12 +40,14 @@ func TestGetHandlerBasicResponse(t *testing.T) {
 				t.Fatalf("returned wrong status code: got %v expected %v", status, tc.statusCode)
 			}
 			defer resp.Body.Close()
-			bytes, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				t.Errorf("could not read body of %q", tc.endpoint)
-			}
-			if err := checkWellFormedXML(string(bytes)); err != nil {
-				t.Errorf("body needs to be valid XML: %v", err)
+			if resp.StatusCode == http.StatusOK {
+				bytes, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					t.Errorf("could not read body of %q", tc.endpoint)
+				}
+				if err := checkWellFormedXML(string(bytes)); err != nil {
+					t.Errorf("body needs to be valid XML: %v", err)
+				}
 			}
 		},
 		)
