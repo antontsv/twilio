@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"log"
@@ -39,16 +40,20 @@ func handler() http.Handler {
 func sendTwiML(w http.ResponseWriter, twiML string) {
 	tmpl, err := template.New("twiMLResponse").Parse(twiML)
 	if err != nil {
-		log.Printf("error creating TwiML template: %v\n", err)
+		dataErrorLog(w, "error creating TwiML template: %v", err)
+		return
 	}
 
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, envVars)
+	if err != nil {
+		dataErrorLog(w, "error while executing TwiML template: %v", err)
+		return
+	}
 	w.Header().Add("Content-Type", "text/xml; charset=utf-8")
 	w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>`))
+	w.Write(buf.Bytes())
 
-	err = tmpl.Execute(w, envVars)
-	if err != nil {
-		log.Printf("error while executing TwiML template: %v\n", err)
-	}
 }
 
 // StraightToVoiceMail uses twimlet to record a message and send it over by email
@@ -117,4 +122,9 @@ func paramGet(req *http.Request, key string) string {
 		return req.URL.Query().Get(key)
 	}
 	return req.Form.Get(key)
+}
+
+func dataErrorLog(w http.ResponseWriter, format string, args ...interface{}) {
+	log.Printf(format, args)
+	w.WriteHeader(http.StatusBadRequest)
 }
