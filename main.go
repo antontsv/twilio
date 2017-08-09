@@ -126,5 +126,7 @@ func paramGet(req *http.Request, key string) string {
 
 func dataErrorLog(w http.ResponseWriter, format string, args ...interface{}) {
 	log.Printf(format, args)
-	w.WriteHeader(http.StatusBadRequest)
+	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte("Server is unable to process your request at this time"))
 }
